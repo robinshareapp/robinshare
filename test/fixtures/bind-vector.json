@@ -1,0 +1,9 @@
+{
+  "_comment": "GENERADO POR contracts/test/BindVector.t.sol - no editar a mano. Lo lee web/test/bind.test.ts para verificar que la implementacion TS del digest coincide con la del contrato.",
+  "chainId": 4663,
+  "vault": "0x5B0091f49210e7B2A57B03dfE1AB9D08289d9294",
+  "payout": "0x2222222222222222222222222222222222222222",
+  "nonce": 0,
+  "deadline": 1800000000,
+  "digest": "0xce84256ea856b34c376a6010f79464176bb66bf94e9dbb463056c9444a9b9abc"
+}

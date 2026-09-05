@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RobinShare — Guía de launch para humanos</title>
+<style>
+  :root{
+    --paper:#0D120E; --lime:#CCFF00; --ink:#F2F3EE; --dim:rgba(242,243,238,.72);
+    --faint:rgba(242,243,238,.45); --hair:rgba(242,243,238,.14); --card:#121913;
+    --green:#00C805; --warn:#FFB347; --danger:#FF6B6B; --mono:ui-monospace,Consolas,monospace;
+  }
+  *{box-sizing:border-box} html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 system-ui,Segoe UI,sans-serif}
+  .wrap{max-width:880px;margin:0 auto;padding:32px 20px 120px}
+  h1{font-size:clamp(1.7rem,5vw,2.6rem);line-height:1.1;margin:.2em 0;text-transform:uppercase;letter-spacing:-.01em}
+  h1 .lime{color:var(--lime)}
+  h2{font-size:1.35rem;margin:2.2em 0 .4em;padding-top:1em;border-top:1px solid var(--hair)}
+  h3{font-size:1.05rem;margin:1.6em 0 .3em}
+  p{color:var(--dim)} strong{color:var(--ink)}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--lime)}
+  .pill{display:inline-block;font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;
+    border:1px solid var(--hair);border-radius:99px;padding:.15em .8em;color:var(--faint);margin-right:.5em}
+  /* progreso */
+  #progress{position:sticky;top:0;z-index:9;background:linear-gradient(var(--paper) 75%,transparent);padding:10px 0 14px}
+  #bar{height:6px;background:var(--card);border-radius:99px;overflow:hidden;border:1px solid var(--hair)}
+  #fill{height:100%;width:0%;background:var(--lime);transition:width .3s}
+  #ptext{font-family:var(--mono);font-size:.72rem;color:var(--faint);margin-top:6px}
+  /* tarjetas de paso */
+  .step{background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:18px 20px;margin:14px 0}
+  .step.done{border-color:rgba(204,255,0,.35)}
+  .step label.check{display:flex;gap:12px;align-items:flex-start;cursor:pointer}
+  .step input[type=checkbox]{width:20px;height:20px;accent-color:var(--lime);margin-top:3px;flex:none}
+  .step .t{font-weight:700;font-size:1.02rem}
+  .step .why{margin:.5em 0 0;font-size:.92rem;color:var(--dim)}
+  .why b{color:var(--lime);font-weight:600}
+  /* comandos */
+  .cmd{position:relative;background:#0A0E0B;border:1px solid var(--hair);border-radius:10px;margin:12px 0 4px;overflow:auto}
+  .cmd pre{margin:0;padding:14px 90px 14px 14px;font:13px/1.55 var(--mono);color:var(--ink);white-space:pre-wrap;word-break:break-all}
+  .cmd button{position:absolute;top:8px;right:8px;background:var(--lime);color:#0D120E;border:0;border-radius:7px;
+    font:700 .72rem var(--mono);letter-spacing:.08em;padding:.45em .9em;cursor:pointer}
+  .cmd button:active{transform:scale(.96)}
+  .cmd .var{color:var(--lime)} .cmd .missing{color:var(--warn);background:rgba(255,179,71,.12);border-radius:4px;padding:0 .3em}
+  .out{font:12px/1.5 var(--mono);color:var(--faint);margin:.3em 0 0}
+  /* panel de valores */
+  #vals{background:#101711;border:1px solid rgba(204,255,0,.3);border-radius:14px;padding:18px 20px;margin:22px 0}
+  #vals h3{margin-top:0}
+  .vrow{display:grid;grid-template-columns:minmax(180px,240px) 1fr;gap:10px;align-items:center;margin:8px 0}
+  .vrow label{font:600 .8rem var(--mono);color:var(--dim)}
+  .vrow input,.vrow select{width:100%;background:#0A0E0B;border:1px solid var(--hair);border-radius:8px;color:var(--ink);
+    font:13px var(--mono);padding:.55em .8em;outline:none}
+  .vrow input:focus{border-color:var(--lime)}
+  @media(max-width:640px){.vrow{grid-template-columns:1fr}}
+  /* callouts */
+  .note,.warn,.danger{border-radius:12px;padding:14px 16px;margin:14px 0;font-size:.93rem}
+  .note{background:rgba(0,200,5,.07);border:1px solid rgba(0,200,5,.3)}
+  .warn{background:rgba(255,179,71,.07);border:1px solid rgba(255,179,71,.4)}
+  .danger{background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.45)}
+  .danger b,.warn b{letter-spacing:.05em}
+  details{border:1px solid var(--hair);border-radius:12px;padding:12px 16px;margin:12px 0;background:var(--card)}
+  summary{cursor:pointer;font-weight:600;color:var(--ink)}
+  details[open] summary{margin-bottom:8px}
+  dt{color:var(--lime);font-family:var(--mono);font-size:.85rem;margin-top:10px} dd{margin:0 0 6px;color:var(--dim);font-size:.9rem}
+  a{color:var(--lime)} code{font-family:var(--mono);font-size:.88em;background:#0A0E0B;border:1px solid var(--hair);border-radius:5px;padding:.08em .4em}
+  .phase{margin-top:40px}
+  .toc{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+  .toc a{font:600 .78rem var(--mono);letter-spacing:.06em;text-decoration:none;border:1px solid var(--hair);
+    border-radius:99px;padding:.4em 1em;color:var(--dim)} .toc a:hover{border-color:var(--lime);color:var(--lime)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">/ robinshare · guía de launch</div>
+  <h1>Lanzar RobinShare, <span class="lime">paso a paso.</span></h1>
+  <p>Esta guía convierte los runbooks técnicos (<code>RUNBOOK-launch.md</code> y <code>DEPLOY-WEB.md</code>) en un camino
+  para humanos. Cada comando ya fue <strong>ensayado de punta a punta</strong> contra una copia de Robinhood Chain — vos
+  solo seguís el orden. Tu progreso y tus valores se guardan en este navegador (podés cerrar y volver).</p>
+
+  <div class="toc">
+    <a href="#fase0">0 · Las 4 llaves</a><a href="#faseA">A · Contratos</a><a href="#faseB">B · Web en Vercel</a>
+    <a href="#faseC">C · Lanzar el token</a><a href="#faseD">D · Verificar</a><a href="#glosario">Glosario</a>
+  </div>
+
+  <div id="progress"><div id="bar"><div id="fill"></div></div><div id="ptext">0 de 0 pasos</div></div>
+
+  <div class="danger"><b>⚠️ REGLA DE ORO — CLAVES PRIVADAS:</b> una <em>private key</em> (empieza con <code>0x</code> y controla
+  fondos) <strong>jamás se pega en una página web, un chat o un formulario</strong> — ni siquiera en esta guía. Acá solo
+  vas a pegar <em>direcciones</em> (públicas, no dan control). Las claves se escriben únicamente en <strong>tu terminal</strong>
+  o en las <strong>variables de entorno de Vercel</strong>, donde esta guía lo indique.</div>
+
+  <!-- ══════════ PANEL DE VALORES ══════════ -->
+  <div id="vals">
+    <h3>📋 Mis valores (pegalos una vez — todos los comandos se arman solos)</h3>
+    <p style="font-size:.88rem">Todo lo de acá es <strong>público</strong> (direcciones y nombres, no claves). Los vas
+    obteniendo a medida que avanzás; volvé a pegarlos acá cuando cada paso te los dé.</p>
+    <div class="vrow"><label for="v-ATTESTER">Dirección del attester</label><input id="v-ATTESTER" data-var="ATTESTER" placeholder="0x… (la ADDRESS del paso 0.2 — no la private key)"></div>
+    <div class="vrow"><label for="v-GH">Tu usuario de GitHub</label><input id="v-GH" data-var="GH" placeholder="0x-keezy"></div>
+    <div class="vrow"><label for="v-FACTORY">Factory (te la da el paso A3)</label><input id="v-FACTORY" data-var="FACTORY" placeholder="0x… (la imprime el deploy)"></div>
+    <div class="vrow"><label for="v-DOMINIO">Dominio de la web</label><input id="v-DOMINIO" data-var="DOMINIO" placeholder="robinshare.vercel.app"></div>
+    <div class="vrow"><label for="v-ESCROW">Escrow del piloto (paso D)</label><input id="v-ESCROW" data-var="ESCROW" placeholder="0x… (te lo da la verificación)"></div>
+  </div>
+
+  <!-- ══════════ FASE 0 ══════════ -->
+  <div class="phase" id="fase0">
+    <h2>Fase 0 — Conseguir las 4 llaves <span class="pill">una sola vez</span></h2>
+    <p>Antes de tocar la terminal, juntá estas 4 cosas. Son lo único que ningún robot puede hacer por vos.</p>
+
+    <div class="step"><label class="check"><input type="checkbox" data-step="k1"><div>
+      <div class="t">0.1 · Tener ETH en Robinhood Chain (la red del launch)</div>
+      <p class="why"><b>¿Qué es esto?</b> Robinhood Chain es la blockchain donde vive RobinShare (su "id" de red es 4663).
+      Para publicar los contratos necesitás pagar <em>gas</em> (la comisión de la red) con ETH que esté EN esa red.
+      Necesitás <strong>al menos 0.05 ETH</strong> en la wallet desde la que vas a deployar.</p>
+      <p class="why">Agregá la red a tu MetaMask con estos datos: <br>RPC: <code>https://rpc.mainnet.chain.robinhood.com</code> ·
+      Chain ID: <code>4663</code> · Explorador: <code>https://robinhoodchain.blockscout.com</code></p>
+    </div></label></div>
+
+    <div class="step"><label class="check"><input type="checkbox" data-step="k2"><div>
+      <div class="t">0.2 · Crear la wallet "attester" (el notario del sistema)</div>
+      <p class="why"><b>¿Qué es esto?</b> El attester es una wallet especial cuyo único trabajo es <em>firmar constancias</em>
+      de "sí, este GitHub le pertenece a esta persona". No guarda plata — <strong>nunca la fondees</strong>. Se crea con
+      un comando en tu terminal (Git Bash):</p>
+      <div class="cmd"><pre>export PATH="$HOME/.foundry/bin:$PATH"
+cast wallet new</pre><button>copiar</button></div>
+      <p class="out">→ imprime una <b>Address</b> (pública — pegala arriba en "Mis valores") y una <b>Private key</b>
+      (SECRETA — guardala en tu gestor de contraseñas; la vas a escribir solo en Vercel, fase B).</p>
+    </div></label></div>
+
+    <div class="step"><label class="check"><input type="checkbox" data-step="k3"><div>
+      <div class="t">0.3 · Crear la GitHub OAuth App (~2 minutos)</div>
+      <p class="why"><b>¿Qué es esto?</b> Es lo que permite que un builder haga click en "Verify with GitHub" y GitHub
+      le confirme la identidad a tu web, sin contraseñas de por medio.</p>
+      <p class="why">1) Andá a <a href="https://github.com/settings/developers" target="_blank">github.com/settings/developers</a>
+      → <strong>OAuth Apps</strong> → <strong>New OAuth App</strong>.<br>
+      2) <strong>Application name:</strong> <code>RobinShare</code><br>
+      3) <strong>Homepage URL:</strong> <span class="cmdinline"><code>https://<span class="var" data-var="DOMINIO">⟨tu-dominio⟩</span></code></span><br>
+      4) <strong>Authorization callback URL</strong> (exacto, con el path):
+      <code>https://<span class="var" data-var="DOMINIO">⟨tu-dominio⟩</span>/api/attest/github/callback</code><br>
+      5) <strong>Register application</strong> → copiá el <b>Client ID</b> y generá + copiá el <b>Client Secret</b>
+      (se muestra UNA sola vez — guardalo con la private key del attester).</p>
+    </div></label></div>
+
+    <div class="step"><label class="check"><input type="checkbox" data-step="k4"><div>
+      <div class="t">0.4 · Iniciar sesión en Vercel (donde vive la web)</div>
+      <p class="why"><b>¿Qué es esto?</b> Vercel es el hosting de la web de RobinShare. El login es interactivo (te manda
+      un mail o abre el navegador), por eso lo hacés vos:</p>
+      <div class="cmd"><pre>cd /c/Users/PC/Flap/web
+npx vercel login</pre><button>copiar</button></div>
+    </div></label></div>
+
+    <div class="note"><b>¿Y Twitter/X?</b> No necesita ninguna llave. Usa el oráculo oficial de Flap
+    (<code>XGeneralVerifier</code>), que ya está funcionando en Robinhood Chain. Cero configuración.</div>
+  </div>
+
+  <!-- ══════════ FASE A ══════════ -->
+  <div class="phase" id="faseA">
+    <h2>Fase A — Publicar los contratos <span class="pill">terminal · ~10 min</span></h2>
+    <p>Acá "deployás" (publicás para siempre) la <strong>factory</strong>: el contrato-fábrica que crea un cofre de fees
+    por cada builder. Se publica la versión exacta que aprobó el auditor de Flap (el tag <code>audited-v3</code>).</p>
+
+    <div class="step"><label class="check"><input type="checkbox" data-step="a1"><div>
+      <div class="t">A1 · Abrir la terminal y confirmar que el código es EL auditado</div>
+      <div class="cmd"><pre>export PATH="$HOME/.foundry/bin:$PATH"
+cd /c/Users/PC/Flap/contracts
+git diff --stat audited-v3 -- src/ script/</pre><button>copiar</button></div>
+      <p class="out">→ si NO imprime nada, perfecto: tu código == el auditado. Si imprime archivos, frená y avisame.</p>
+    </div></label></div>
+
+    <div class="step"><label class="check"><input type="checkbox" data-step="a2"><div>
+      <div class="t">A2 · Cargar tu clave de deploy en la terminal (solo ahí)</div>
+      <p class="why"><b>¿Qué es esto?</b> El comando de deploy necesita firmar con la wallet que tiene el ETH. Le pasás
+      la private key como <em>variable de entorno</em>: vive solo en esa ventana de terminal y muere al cerrarla.
+      <strong>Reemplazá lo de los ⟨⟩ escribiéndolo a mano en la terminal</strong> — no lo guardes en archivos.</p>
+      <div class="cmd"><pre>export DEPLOYER_PK=⟨private-key-de-tu-wallet-con-ETH⟩</pre><button>copiar</button></div>
+      <div class="warn" style="margin:.6em 0 0"><b>Tip:</b> poné un espacio ANTES de escribir <code>export…</code> y el
+      comando no queda en el historial de la terminal.</div>
+    </div></label></div>
+
+    <div class="step"><label class="check"><input type="checkbox" data-step="a3"><div>
+      <div class="t">A3 · Deploy de la factory 🚀</div>
+      <p class="why">Este es el momento en que la fábrica queda publicada en la blockchain, con tu attester grabado como
+      el notario oficial (rotable después solo por él mismo o el Guardian de Flap).</p>
+      <div class="cmd"><pre>ATTESTER_ADDRESS=<span class="var" data-var="ATTESTER">⟨pegá-arriba-la-address-del-attester⟩</span> \
+  forge script script/Deploy.s.sol --rpc-url robinhood --broadcast --private-key $DEPLOYER_PK</pre><button>copiar</button></div>
+      <p class="out">→ el log imprime <b>SocialFeeEscrowFactory: 0x…</b> — esa es tu <b>FACTORY</b>: pegala arriba en
+      "Mis valores". Confirmá también que el log diga "Canonical attester" con tu address.</p>
+    </div></label></div>
+
+    <div class="step"><label class="check"><input type="checkbox" data-step="a4"><div>
+      <div class="t">A4 · Verificar el contrato en el explorador (que el mundo lea el código)</div>
+      <p class="why"><b>¿Para qué?</b> "Verificar" publica el código fuente en Blockscout para que cualquiera pueda leerlo
+      y confirmar que es el auditado. Es transparencia, no seguridad extra.</p>
+      <div class="cmd"><pre>forge verify-contract <span class="var" data-var="FACTORY">⟨FACTORY⟩</span> src/SocialFeeEscrowFactory.sol:SocialFeeEscrowFactory \
+  --chain-id 4663 --verifier blockscout --verifier-url https://robinhoodchain.blockscout.com/api \
+  --constructor-args $(cast abi-encode "constructor(address)" <span class="var" data-var="ATTESTER">⟨ATTESTER⟩</span>)</pre><button>copiar</button></div>
+    </div></label></div>
+  </div>
+
+  <!-- ══════════ FASE B ══════════ -->
+  <div class="phase" id="faseB">
+    <h2>Fase B — Publicar la web <span class="pill">vercel · ~10 min</span></h2>
+    <p>La web es la cara del producto: <code>/create</code> para lanzar coins y <code>/claim</code> para cobrar. Además
+    esconde al attester: un mini-servidor que verifica GitHub y firma los vouchers automáticamente.</p>
+
+    <div class="step"><label class="check"><input type="checkbox" data-step="b1"><div>
+      <div class="t">B1 · Conectar el proyecto</div>
+      <div class="cmd"><pre>cd /c/Users/PC/Flap/web
+npx vercel link</pre><button>copiar</button></div>
+      <p class="out">→ si pregunta "In which directory is your code located?", contestá <b>./</b></p>
+    </div></label></div>
+
+    <div class="step"><label class="check"><input type="checkbox" data-step="b2"><div>
+      <div class="t">B2 · Cargar las variables de entorno en Vercel</div>
+      <p class="why">En el dashboard de Vercel: tu proyecto → <strong>Settings → Environment Variables</strong>, ambiente
+      <strong>Production</strong>. Cargá estas 6 (las dos SECRETAS se pegan ahí y en ningún otro lado):</p>
+      <div class="cmd"><pre>NEXT_PUBLIC_FACTORY_ADDRESS = <span class="var" data-var="FACTORY">⟨FACTORY⟩</span>
+APP_BASE_URL                = https://<span class="var" data-var="DOMINIO">⟨tu-dominio⟩</span>          (sin / al final)
+GITHUB_CLIENT_ID            = (el Client ID del paso 0.3)
+GITHUB_CLIENT_SECRET        = (SECRETO — el Client Secret del paso 0.3)
+ATTESTER_PK                 = (SECRETO — la private key del attester del paso 0.2)
+ATTESTER_STATE_SECRET       = (SECRETO — un random largo; generalo abajo)</pre><button>copiar</button></div>
+      <p class="why">Para el <code>ATTESTER_STATE_SECRET</code> (una firma interna anti-falsificación del login de GitHub),
+      generá un random en tu terminal y pegalo en Vercel:</p>
+      <div class="cmd"><pre>openssl rand -hex 32</pre><button>copiar</button></div>
+    </div></label></div>
+
+    <div class="step"><label class="check"><input type="checkbox" data-step="b3"><div>
+      <div class="t">B3 · Deploy a producción</div>
+      <div class="cmd"><pre>npx vercel --prod</pre><button>copiar</button></div>
+      <p class="out">→ al final imprime el dominio real. Si difiere del que pusiste en "Mis valores", actualizalo arriba
+      (y sincronizá el callback de la OAuth App del paso 0.3 con el dominio definitivo).</p>
+    </div></label></div>
+
+    <div class="step"><label class="check"><input type="checkbox" data-step="b4"><div>
+      <div class="t">B4 · Chequeo de salud (el detector de errores de configuración)</div>
+      <div class="cmd"><pre>curl https://<span class="var" data-var="DOMINIO">⟨tu-dominio⟩</span>/api/health</pre><button>copiar</button></div>
+      <p class="out">→ debe responder <b>"ok": true</b>, con <b>attesterMatches: true</b> (la key de Vercel corresponde
+      al attester de la factory) y <b>githubOAuth: true</b>. Si <code>attesterMatches</code> da false, la ATTESTER_PK
+      de Vercel no es la de la wallet del paso 0.2 — corregila y redeployá.</p>
+    </div></label></div>
+  </div>
+
+  <!-- ══════════ FASE C ══════════ -->
+  <div class="phase" id="faseC">
+    <h2>Fase C — Lanzar el token piloto <span class="pill">desde la web · lo divertido</span></h2>
+    <p>Con la infraestructura arriba, el launch en sí es <strong>usar tu propio producto</strong>: la página
+    <code>/create</code> hace todo (mina el salt, arma los parámetros, llama al portal de Flap).</p>
+
+    <div class="step"><label class="check"><input type="checkbox" data-step="c1"><div>
+      <div class="t">C1 · Crear la coin desde /create</div>
+      <p class="why">Abrí <code>https://<span class="var" data-var="DOMINIO">⟨tu-dominio⟩</span>/create</code>, conectá la wallet
+      (la que tiene el ETH), y completá: nombre y símbolo de la coin, <strong>a quién van los fees</strong>
+      (github → <code><span class="var" data-var="GH">⟨tu-github⟩</span></code> para el piloto), el dev-buy inicial
+      (ej. 0.01 ETH) y firmá. Listo: la coin queda viva en Flap y su cofre de fees creado.</p>
+      <div class="warn"><b>Ojo:</b> el launch <strong>no se puede deshacer</strong> (el token queda vivo para siempre).
+      Revisá nombre/símbolo/identidad antes de firmar. "recoveryDays" válidos: 0 (nunca recuperar) o 30 en adelante.</div>
+      <details><summary>Alternativa avanzada: lanzar por línea de comandos (sin la web)</summary>
+        <p class="why">Está documentada con el tuple completo en <code>docs/RUNBOOK-launch.md</code> §4 opción B
+        (ensayada verbatim). Para el piloto, la vía /create es la recomendada.</p>
+      </details>
+    </div></label></div>
+  </div>
+
+  <!-- ══════════ FASE D ══════════ -->
+  <div class="phase" id="faseD">
+    <h2>Fase D — Verificar que todo respira <span class="pill">5 chequeos</span></h2>
+
+    <div class="step"><label class="check"><input type="checkbox" data-step="d1"><div>
+      <div class="t">D1 · Encontrar el cofre (escrow) del piloto</div>
+      <div class="cmd"><pre>IDH=$(cast call <span class="var" data-var="FACTORY">⟨FACTORY⟩</span> "identityHashFor(string,string,address)(bytes32)" "github" "<span class="var" data-var="GH">⟨tu-github⟩</span>" 0x0000000000000000000000000000000000000000 --rpc-url https://rpc.mainnet.chain.robinhood.com)
+cast call <span class="var" data-var="FACTORY">⟨FACTORY⟩</span> "getVaults(bytes32)(address[])" $IDH --rpc-url https://rpc.mainnet.chain.robinhood.com</pre><button>copiar</button></div>
+      <p class="out">→ imprime la dirección del escrow — pegala arriba en "Mis valores".</p>
+    </div></label></div>
+
+    <div class="step"><label class="check"><input type="checkbox" data-step="d2"><div>
+      <div class="t">D2 · Tres lecturas del cofre (deben cuadrar)</div>
+      <div class="cmd"><pre>cast call <span class="var" data-var="ESCROW">⟨ESCROW⟩</span> "taxToken()(address)"   --rpc-url https://rpc.mainnet.chain.robinhood.com
+cast call <span class="var" data-var="ESCROW">⟨ESCROW⟩</span> "attester()(address)"   --rpc-url https://rpc.mainnet.chain.robinhood.com
+cast call <span class="var" data-var="ESCROW">⟨ESCROW⟩</span> "description()(string)" --rpc-url https://rpc.mainnet.chain.robinhood.com</pre><button>copiar</button></div>
+      <p class="out">→ taxToken = tu coin lanzada · attester = tu address del paso 0.2 · description = un texto legible.</p>
+    </div></label></div>
+
+    <div class="step"><label class="check"><input type="checkbox" data-step="d3"><div>
+      <div class="t">D3 · El circuito de fees vivo</div>
+      <p class="why">Comprá una pizca de tu coin en <a href="https://flap.sh" target="_blank">flap.sh</a> (board de
+      Robinhood) y mirá cómo el cofre engorda (el tax llega por lotes, puede demorar unos minutos):</p>
+      <div class="cmd"><pre>cast balance <span class="var" data-var="ESCROW">⟨ESCROW⟩</span> --rpc-url https://rpc.mainnet.chain.robinhood.com</pre><button>copiar</button></div>
+    </div></label></div>
+
+    <div class="step"><label class="check"><input type="checkbox" data-step="d4"><div>
+      <div class="t">D4 · El claim de verdad (la prueba final)</div>
+      <p class="why">Abrí <code>https://<span class="var" data-var="DOMINIO">⟨tu-dominio⟩</span>/claim/<span class="var" data-var="ESCROW">⟨ESCROW⟩</span></code>,
+      conectá una wallet, botón <strong>Verify with GitHub</strong> (te loguea con tu cuenta) → <strong>Claim</strong> →
+      el ETH del cofre llega a tu wallet. Si esto sale verde, <strong>RobinShare está VIVO</strong>. 🏹</p>
+    </div></label></div>
+
+    <div class="step"><label class="check"><input type="checkbox" data-step="d5"><div>
+      <div class="t">D5 · Recién ahora: contarlo al mundo</div>
+      <p class="why">El post de X va <strong>después</strong> del claim verde, nunca antes (regla de la casa: quality-gate
+      del post primero). El teaser y los renders ya están listos en <code>promo/</code>.</p>
+    </div></label></div>
+  </div>
+
+  <!-- ══════════ GLOSARIO ══════════ -->
+  <div class="phase" id="glosario">
+    <h2>Glosario para humanos</h2>
+    <details open><summary>Las 10 palabras que aparecen en esta guía</summary><dl>
+      <dt>wallet</dt><dd>Tu "cuenta" en la blockchain: una dirección pública (0x…, como un alias de banco) + una private key (la contraseña maestra).</dd>
+      <dt>private key</dt><dd>La clave secreta que CONTROLA una wallet. Quien la tiene, es el dueño. Jamás se comparte ni se pega en páginas.</dd>
+      <dt>gas</dt><dd>La comisión que cobra la red por procesar una transacción. Se paga en el ETH de esa red.</dd>
+      <dt>deploy</dt><dd>Publicar un contrato en la blockchain. Es permanente: no hay "deshacer".</dd>
+      <dt>factory</dt><dd>Nuestro contrato-fábrica: crea un escrow (cofre) por cada builder al que alguien le lanza una coin.</dd>
+      <dt>escrow / vault</dt><dd>El cofre de UN builder: acumula su tajada de los fees de trading, y solo se abre probando la identidad.</dd>
+      <dt>attester</dt><dd>El notario: una wallet-oráculo que firma "este GitHub es de esta persona". Vive en el servidor de la web.</dd>
+      <dt>salt / vanity</dt><dd>Un número que se "mina" localmente para que la dirección del token termine en 7777 (requisito del portal de Flap). La página /create lo hace sola.</dd>
+      <dt>RPC</dt><dd>La URL por donde tu compu le habla a la blockchain (como el servidor de un juego).</dd>
+      <dt>Guardian</dt><dd>El multisig oficial de Flap (no nuestro): el único rol privilegiado, para emergencias. Auditado y aceptado por ellos.</dd>
+    </dl></details>
+    <p style="font-size:.85rem;color:var(--faint)">Documentos fuente: <code>docs/RUNBOOK-launch.md</code> ·
+    <code>docs/DEPLOY-WEB.md</code> · evidencia del ensayo: <code>docs/ENSAYO-LAUNCH-2026-07-17.md</code>.
+    Audit de Flap aprobado 2026-07-17 ("you can proceed with the deployment").</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var LS='rs-guia-';
+  // ── valores ──
+  var inputs=document.querySelectorAll('#vals input');
+  function paint(){
+    inputs.forEach(function(inp){
+      var k=inp.dataset.var, v=inp.value.trim();
+      document.querySelectorAll('.var[data-var="'+k+'"]').forEach(function(s){
+        if(v){s.textContent=v;s.classList.remove('missing');}
+        else{s.textContent=s.dataset.ph||s.textContent;s.classList.add('missing');}
+      });
+    });
+  }
+  document.querySelectorAll('.var').forEach(function(s){s.dataset.ph=s.textContent;});
+  inputs.forEach(function(inp){
+    inp.value=localStorage.getItem(LS+'v-'+inp.dataset.var)||'';
+    inp.addEventListener('input',function(){
+      localStorage.setItem(LS+'v-'+inp.dataset.var,inp.value.trim());paint();
+    });
+  });
+  paint();
+  // ── copiar ──
+  document.querySelectorAll('.cmd button').forEach(function(b){
+    b.addEventListener('click',function(e){
+      e.preventDefault();e.stopPropagation();
+      var t=b.parentNode.querySelector('pre').innerText;
+      (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){
+        b.textContent='✓ copiado';setTimeout(function(){b.textContent='copiar';},1400);
+      }).catch(function(){
+        var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);
+        ta.select();document.execCommand('copy');document.body.removeChild(ta);
+        b.textContent='✓ copiado';setTimeout(function(){b.textContent='copiar';},1400);
+      });
+    });
+  });
+  // ── checkboxes + progreso ──
+  var checks=document.querySelectorAll('input[type=checkbox][data-step]');
+  function prog(){
+    var done=0;checks.forEach(function(c){if(c.checked)done++;});
+    document.getElementById('fill').style.width=(100*done/checks.length)+'%';
+    document.getElementById('ptext').textContent=done+' de '+checks.length+' pasos'+(done===checks.length?' — 🏹 ¡LISTO PARA VOLAR!':'');
+  }
+  checks.forEach(function(c){
+    c.checked=localStorage.getItem(LS+'s-'+c.dataset.step)==='1';
+    c.closest('.step').classList.toggle('done',c.checked);
+    c.addEventListener('change',function(){
+      localStorage.setItem(LS+'s-'+c.dataset.step,c.checked?'1':'0');
+      c.closest('.step').classList.toggle('done',c.checked);prog();
+    });
+  });
+  prog();
+})();
+</script>
+</body>
+</html>
